@@ -61,3 +61,53 @@ async def db_test():
             }
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/cafes")
+async def get_cafes():
+    """Obtener todos los cafés"""
+    from sqlalchemy.orm import Session
+    from app.database.models import Cafe
+    
+    db = SessionLocal()
+    try:
+        cafes = db.query(Cafe).all()
+        return [
+            {
+                "id": c.id,
+                "nombre": c.nombre,
+                "origen": c.origen,
+                "tipo": c.tipo,
+                "tostado": c.tostado,
+                "formato": c.formato,
+                "costo_base": c.costo_base,
+                "precio_sugerido": round(c.costo_base * 2, 2),
+                "descripcion": c.descripcion
+            }
+            for c in cafes
+        ]
+    finally:
+        db.close()
+
+@app.get("/cafes/{cafe_id}")
+async def get_cafe(cafe_id: int):
+    """Obtener un café por ID"""
+    from sqlalchemy.orm import Session
+    from app.database.models import Cafe
+    
+    db = SessionLocal()
+    try:
+        cafe = db.query(Cafe).filter(Cafe.id == cafe_id).first()
+        if not cafe:
+            return {"error": "Café no encontrado"}
+        return {
+            "id": cafe.id,
+            "nombre": cafe.nombre,
+            "origen": cafe.origen,
+            "tipo": cafe.tipo,
+            "tostado": cafe.tostado,
+            "formato": cafe.formato,
+            "costo_base": cafe.costo_base,
+            "descripcion": cafe.descripcion
+        }
+    finally:
+        db.close()
