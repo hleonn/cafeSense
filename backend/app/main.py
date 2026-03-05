@@ -5,7 +5,7 @@ from typing import Optional, List
 from pydantic import BaseModel, validator
 from datetime import datetime, timedelta, date
 import numpy as np
-
+from ml import predict as ml_predict
 from app.database.models import Cafe, Venta, Escenario, Base
 
 app = FastAPI(title="CafeSense API")
@@ -463,5 +463,122 @@ async def get_escenario(escenario_id: int):
             "impacto_estimado": escenario.impacto_estimado,
             "fecha_creacion": escenario.fecha_creacion.isoformat()
         }
+    finally:
+        db.close()
+# ============ ENDPOINT RANDOM FOREST ============
+
+@app.post("/simular-rf", response_model=SimulacionResponse)
+async def simular_cambio_precio_rf(request: SimulacionRequest):
+    """Simular usando Random Forest (más preciso, multi-variable)"""
+    db = SessionLocal()
+    try:
+        # Obtener información del café
+        cafe = db.query(Cafe).filter(Cafe.id == request.cafe_id).first()
+        if not cafe:
+            raise HTTPException(status_code=404, detail="Café no encontrado")
+        
+        # Calcular precio actual promedio (últimos 30 días)
+        fecha_limite = datetime.now().date() - timedelta(days=30)
+        ventas_recientes = db.query(Venta).filter(
+            Venta.cafe_id == request.cafe_id,
+            Venta.fecha >= fecha_limite
+        ).all()
+        
+        if not ventas_recientes:
+            raise HTTPException(status_code=404, detail="No hay ventas recientes para este café")
+        
+        precio_actual = sum(v.precio_unitario for v in ventas_recientes) / len(ventas_recientes)
+        demanda_actual = sum(v.cantidad for v in ventas_recientes)
+        
+        # Determinar nuevo precio basado en lo que envió el usuario
+        if request.nuevo_precio is not None:
+            nuevo_precio = request.nuevo_precio
+            cambio_porcentaje = ((nuevo_precio - precio_actual) / precio_actual) * 100
+        else:
+            cambio_porcentaje = request.porcentaje_cambio
+            nuevo_precio = precio_actual * (1 + cambio_porcentaje / 100)
+        
+        # Predecir demanda con Random Forest
+        # Usamos valores típicos para canal, región, etc.
+        demanda_estimada = ml_predict.predecir_demanda_mensual(
+            cafe_id=request.cafe_id,
+            nuevo_precio=nuevo_precio,
+            db=db
+        )
+        
+        # Si el modelo no está disponible, usar el método lineal
+        if demanda_estimada is None:
+            # Calcular elasticidad con método lineal
+            fecha_6m = datetime.now().date() - timedelta(days=180)
+            ventas_historicas = db.query(Venta).filter(
+                Venta.cafe_id == request.cafe_id,
+                Venta.fecha >= fecha_6m
+            ).all()
+            
+            if len(ventas_historicas) < 10:
+                elasticidad = -1.5
+            else:
+                # Agrupar por precio
+                precios = {}
+                for v in ventas_historicas:
+                    precio_redon = round(v.precio_unitario, 1)
+                    if precio_redon not in precios:
+                        precios[precio_redon] = []
+                    precios[precio_redon].append(v.cantidad)
+                
+                precios_log = []
+                demandas_log = []
+                for precio, cantidades in precios.items():
+                    if len(cantidades) >= 3:
+                        precios_log.append(np.log(precio))
+                        demandas_log.append(np.log(np.mean(cantidades)))
+                
+                if len(precios_log) >= 3:
+                    coeficientes = np.polyfit(precios_log, demandas_log, 1)
+                    elasticidad = coeficientes[0]
+                else:
+                    elasticidad = -1.2
+            
+            cambio_demanda_porcentaje = elasticidad * (cambio_porcentaje / 100) * 100
+            demanda_estimada = int(demanda_actual * (1 + cambio_demanda_porcentaje / 100))
+            demanda_estimada = max(1, demanda_estimada)
+            elasticidad_calc = elasticidad
+            metodo = "lineal (fallback)"
+        else:
+            # Calcular elasticidad aproximada con el modelo RF
+            elasticidad_calc = ml_predict.calcular_elasticidad(
+                cafe_id=request.cafe_id,
+                precio_actual=precio_actual,
+                db=db
+            )
+            metodo = "random forest"
+        
+        # Calcular ingresos
+        ingreso_actual = precio_actual * demanda_actual
+        ingreso_estimado = nuevo_precio * demanda_estimada
+        impacto_ingreso = ((ingreso_estimado - ingreso_actual) / ingreso_actual) * 100
+        
+        # Generar recomendación
+        if impacto_ingreso > 5:
+            recomendacion = f"📈 SUBIR PRECIO - Aumenta ingresos ({metodo})"
+        elif impacto_ingreso < -5:
+            recomendacion = f"📉 BAJAR PRECIO - Disminuye ingresos ({metodo})"
+        else:
+            recomendacion = f"⚖️ MANTENER PRECIO - Impacto neutral ({metodo})"
+        
+        return SimulacionResponse(
+            cafe_id=cafe.id,
+            cafe_nombre=cafe.nombre,
+            precio_actual=round(precio_actual, 2),
+            nuevo_precio=round(nuevo_precio, 2),
+            cambio_porcentaje=round(cambio_porcentaje, 2),
+            demanda_actual=demanda_actual,
+            demanda_estimada=demanda_estimada,
+            ingreso_actual=round(ingreso_actual, 2),
+            ingreso_estimado=round(ingreso_estimado, 2),
+            impacto_ingreso=round(impacto_ingreso, 2),
+            elasticidad=round(elasticidad_calc, 2),
+            recomendacion=recomendacion
+        )
     finally:
         db.close()
