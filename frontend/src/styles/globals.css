@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brown-50: #fdf8f6;
+  --color-brown-100: #f8e9e0;
+  --color-brown-200: #f0d5c5;
+  --color-brown-300: #e2baa4;
+  --color-brown-400: #d1987a;
+  --color-brown-500: #c17f59;
+  --color-brown-600: #a5673f;
+  --color-brown-700: #865233;
+  --color-brown-800: #6a4027;
+  --color-brown-900: #4a3729;
+}
+
+@layer base {
+  body {
+    @apply bg-brown-50 text-gray-900 antialiased font-sans;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl shadow-lg p-6;
+  }
+  
+  .btn-primary {
+    @apply bg-brown-600 text-white px-4 py-2 rounded-lg hover:bg-brown-700 transition-colors cursor-pointer;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer;
+  }
+  
+  .input-range {
+    @apply w-full h-2 bg-brown-200 rounded-lg appearance-none cursor-pointer;
+  }
+}
