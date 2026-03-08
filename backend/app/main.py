@@ -582,3 +582,18 @@ async def simular_cambio_precio_rf(request: SimulacionRequest):
         )
     finally:
         db.close()
+
+        @app.delete("/escenarios/{escenario_id}")
+        async def eliminar_escenario(escenario_id: int):
+            """Eliminar un escenario por ID"""
+            db = SessionLocal()
+            try:
+                escenario = db.query(Escenario).filter(Escenario.id == escenario_id).first()
+                if not escenario:
+                    raise HTTPException(status_code=404, detail="Escenario no encontrado")
+
+                db.delete(escenario)
+                db.commit()
+                return {"message": "Escenario eliminado correctamente"}
+            finally:
+                db.close()
