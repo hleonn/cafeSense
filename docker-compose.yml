@@ -1,15 +1,42 @@
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: cafesense_postgres_dev
+    environment:
+      POSTGRES_DB: cafesense
+      POSTGRES_USER: cafesense_user
+      POSTGRES_PASSWORD: cafesense_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cafesense_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cafesense_network
+
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+    build: ./backend
     container_name: cafesense_backend
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
     environment:
-      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://tato@host.docker.internal:5432/cafesense_dev:5432/cafesense
+    depends_on:
+      postgres:
+        condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - cafesense_network
+
+volumes:
+  postgres_data:
+
+networks:
+  cafesense_network:
+    driver: bridge
