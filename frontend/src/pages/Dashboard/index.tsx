@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { useCafes } from '../../hooks/useCafes'
 import { useSimulacion } from '../../hooks/useSimulacion'
 import { useEscenarios } from '../../hooks/useEscenarios'
@@ -8,23 +10,29 @@ import { ComparisonChart } from '../../components/features/SimulationResults/Com
 import { GuardarEscenarioModal } from '../../components/features/Scenarios/GuardarEscenarioModal'
 import { ListaEscenarios } from '../../components/features/Scenarios/ListaEscenarios'
 import { PDFGenerator } from '../../components/features/PDFGenerator'
-import { Card } from '../../components/common/Card'
+import { KPIGrid } from '../../components/features/KPIs'
+import { MainLayout } from '../../components/layout/MainLayout'
 import { Button } from '../../components/common/Button'
 import { BookmarkIcon } from '@heroicons/react/24/outline'
 
 export const Dashboard = () => {
-  const { cafes, selectedCafe, setSelectedCafe, loading: loadingCafes } = useCafes()
-  const { resultadoLineal, resultadoRF, loading, error, simular } = useSimulacion()
+  const { cafes, selectedCafe, setSelectedCafe } = useCafes()
+  const { resultadoLineal, resultadoRF, loading, simular } = useSimulacion()
   const { escenarios, guardarEscenario, eliminarEscenario } = useEscenarios()
   const [porcentaje, setPorcentaje] = useState(10)
   const [modalAbierto, setModalAbierto] = useState(false)
 
-  const handleSimular = () => {
-    if (!selectedCafe) return
-    simular({
+  const handleSimular = async () => {
+    if (!selectedCafe) {
+      toast.error('Por favor selecciona un café')
+      return
+    }
+    
+    await simular({
       cafe_id: selectedCafe.id,
       porcentaje_cambio: porcentaje
     })
+    toast.success('¡Simulación completada!')
   }
 
   const handleGuardar = async (nombre: string, descripcion: string) => {
@@ -42,29 +50,19 @@ export const Dashboard = () => {
       impacto_rf: resultadoRF.impacto_ingreso,
       recomendacion: resultadoRF.recomendacion
     })
-  }
-
-  if (loadingCafes) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brown-600" />
-        </div>
-      </div>
-    )
+    toast.success('¡Escenario guardado!')
+    setModalAbierto(false)
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-brown-800 mb-6">
-        ☕ CafeSense - Simulador de Elasticidad
-      </h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Panel izquierdo - Controles y Escenarios */}
+    <MainLayout title="Dashboard">
+      <KPIGrid />
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
         <div className="lg:col-span-1 space-y-6">
-          <Card title="🎮 Panel de Control">
-            <div className="space-y-6">
+          <div className="card">
+            <h3 className="card-title mb-4">🎮 Panel de Control</h3>
+            <div className="space-y-4">
               <CafeSelector
                 cafes={cafes}
                 selectedCafe={selectedCafe}
@@ -72,7 +70,11 @@ export const Dashboard = () => {
               />
               
               {selectedCafe && (
-                <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-4"
+                >
                   <PriceSlider
                     precioActual={selectedCafe.precio_sugerido}
                     onChange={setPorcentaje}
@@ -85,10 +87,10 @@ export const Dashboard = () => {
                   >
                     Simular Impacto
                   </Button>
-                </>
+                </motion.div>
               )}
             </div>
-          </Card>
+          </div>
 
           <ListaEscenarios
             escenarios={escenarios}
@@ -96,48 +98,12 @@ export const Dashboard = () => {
           />
         </div>
 
-        {/* Panel derecho - Resultados */}
-        <Card title="📊 Resultados" className="lg:col-span-3">
-          {error && (
-            <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4">
-              {error}
-            </div>
-          )}
-
-          {resultadoLineal && resultadoRF ? (
-            <div className="space-y-6">
-              {/* Header con botones */}
-              <div className="flex justify-between items-center">
-                <div className="grid grid-cols-3 gap-4 flex-1">
-                  <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-blue-600 mb-1">Impacto (Lineal)</p>
-                    <p className={`text-2xl font-bold ${
-                      resultadoLineal.impacto_ingreso > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {resultadoLineal.impacto_ingreso > 0 ? '+' : ''}
-                      {resultadoLineal.impacto_ingreso.toFixed(1)}%
-                    </p>
-                  </div>
-                  
-                  <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-purple-600 mb-1">Impacto (RF)</p>
-                    <p className={`text-2xl font-bold ${
-                      resultadoRF.impacto_ingreso > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {resultadoRF.impacto_ingreso > 0 ? '+' : ''}
-                      {resultadoRF.impacto_ingreso.toFixed(1)}%
-                    </p>
-                  </div>
-                  
-                  <div className="bg-amber-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-amber-600 mb-1">Elasticidad</p>
-                    <p className="text-2xl font-bold text-amber-800">
-                      {resultadoLineal.elasticidad.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2 ml-4">
+        <div className="lg:col-span-3">
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">📊 Resultados</h3>
+              {resultadoLineal && resultadoRF && (
+                <div className="flex gap-2">
                   <PDFGenerator
                     resultados={{ lineal: resultadoLineal, rf: resultadoRF }}
                     tipo="simulacion"
@@ -151,85 +117,22 @@ export const Dashboard = () => {
                     Guardar
                   </Button>
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Gráficos */}
+            {resultadoLineal && resultadoRF ? (
               <ComparisonChart lineal={resultadoLineal} rf={resultadoRF} />
-
-              {/* Tabla de Resultados */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Modelo</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Precio</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Demanda</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Ingreso</th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Δ %</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 py-2 text-sm font-medium">Actual</td>
-                      <td className="px-4 py-2 text-sm text-right">${resultadoLineal.precio_actual.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-sm text-right">{resultadoLineal.demanda_actual}</td>
-                      <td className="px-4 py-2 text-sm text-right">${resultadoLineal.ingreso_actual.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-sm text-right">-</td>
-                    </tr>
-                    <tr className="bg-brown-50">
-                      <td className="px-4 py-2 text-sm font-medium">Lineal</td>
-                      <td className="px-4 py-2 text-sm text-right">${resultadoLineal.nuevo_precio.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-sm text-right">{resultadoLineal.demanda_estimada}</td>
-                      <td className="px-4 py-2 text-sm text-right">${resultadoLineal.ingreso_estimado.toFixed(2)}</td>
-                      <td className={`px-4 py-2 text-sm text-right font-bold ${
-                        resultadoLineal.impacto_ingreso > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {resultadoLineal.impacto_ingreso > 0 ? '+' : ''}
-                        {resultadoLineal.impacto_ingreso.toFixed(1)}%
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 text-sm font-medium">Random Forest</td>
-                      <td className="px-4 py-2 text-sm text-right">${resultadoRF.nuevo_precio.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-sm text-right">{resultadoRF.demanda_estimada}</td>
-                      <td className="px-4 py-2 text-sm text-right">${resultadoRF.ingreso_estimado.toFixed(2)}</td>
-                      <td className={`px-4 py-2 text-sm text-right font-bold ${
-                        resultadoRF.impacto_ingreso > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {resultadoRF.impacto_ingreso > 0 ? '+' : ''}
-                        {resultadoRF.impacto_ingreso.toFixed(1)}%
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+                <span className="text-6xl mb-4">📊</span>
+                <p>Selecciona un café y ajusta el precio</p>
+                <p className="text-sm mt-2">para ver la simulación comparativa</p>
               </div>
-
-              {/* Recomendación */}
-              <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <span className="text-2xl">💡</span>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-amber-700">
-                      <span className="font-bold">Recomendación: </span>
-                      {resultadoRF.recomendacion}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-gray-400">
-              <span className="text-6xl mb-4">📊</span>
-              <p>Selecciona un café y ajusta el precio</p>
-              <p className="text-sm mt-2">para ver la simulación comparativa</p>
-            </div>
-          )}
-        </Card>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Modal para guardar escenario */}
       {resultadoRF && selectedCafe && (
         <GuardarEscenarioModal
           isOpen={modalAbierto}
@@ -239,6 +142,6 @@ export const Dashboard = () => {
           impacto={resultadoRF.impacto_ingreso}
         />
       )}
-    </div>
+    </MainLayout>
   )
 }

@@ -20,10 +20,21 @@ interface Props {
   rf: SimulacionResponse | null
 }
 
+const COLORS = {
+  electricBlue: '#0984E3',
+  cyanNeon: '#00CEC9',
+  nightBlack: '#1E272E',
+  cloudWhite: '#F5F6FA',
+  gray700: '#334155',
+  gray600: '#475569',
+  actual: '#64748B',
+  lineal: '#0984E3',
+  rf: '#00CEC9'
+}
+
 export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
   if (!lineal || !rf) return null
 
-  // Datos para el gráfico de barras (comparación de ingresos y demanda)
   const barData = [
     {
       name: 'Ingresos',
@@ -39,7 +50,6 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
     }
   ]
 
-  // Datos para el gráfico de elasticidad (simulación de diferentes precios)
   const generarCurvaDemanda = () => {
     const puntos = []
     const precioBase = lineal.precio_actual
@@ -50,10 +60,9 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
       const precio = precioBase * (1 + i / 100)
       const demandaLineal = demandaBase * Math.pow(precio / precioBase, elasticidad)
       puntos.push({
-        precio: precio.toFixed(2),
+        precio: Math.round(precio),
         cambio: i,
         demandaLineal: Math.round(demandaLineal),
-        // RF podría tener diferentes valores aquí
       })
     }
     return puntos
@@ -61,76 +70,85 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
 
   const curvaData = generarCurvaDemanda()
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
+          <p className="text-cloud-white text-sm">{`${label}`}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }} className="text-sm">
+              {`${entry.name}: ${entry.value.toFixed(2)}`}
+            </p>
+          ))}
+        </div>
+      )
+    }
+    return null
+  }
+
   return (
     <div className="space-y-6">
       {/* Gráfico 1: Comparación de Ingresos y Demanda */}
-      <div className="bg-white p-4 rounded-lg border">
-        <h4 className="text-sm font-semibold text-gray-700 mb-4">
+      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
+        <h4 className="text-sm font-semibold text-cloud-white mb-4">
           Comparación de Modelos
         </h4>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={barData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="Actual" fill="#9ca3af" />
-            <Bar dataKey="Lineal" fill="#c17f59" />
-            <Bar dataKey="Random Forest" fill="#4a3729" />
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray700} />
+            <XAxis dataKey="name" stroke={COLORS.gray500} />
+            <YAxis stroke={COLORS.gray500} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ color: COLORS.cloudWhite }} />
+            <Bar dataKey="Actual" fill={COLORS.actual} />
+            <Bar dataKey="Lineal" fill={COLORS.lineal} />
+            <Bar dataKey="Random Forest" fill={COLORS.rf} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Gráfico 2: Curva de Demanda vs Precio */}
-      <div className="bg-white p-4 rounded-lg border">
-        <h4 className="text-sm font-semibold text-gray-700 mb-4">
+      {/* Gráfico 2: Curva de Demanda */}
+      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
+        <h4 className="text-sm font-semibold text-cloud-white mb-4">
           Curva de Demanda (Elasticidad: {lineal.elasticidad.toFixed(2)})
         </h4>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={curvaData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray700} />
             <XAxis 
-              dataKey="cambio" 
-              label={{ value: 'Cambio de Precio (%)', position: 'insideBottom', offset: -5 }}
+              dataKey="precio" 
+              stroke={COLORS.gray500}
+              label={{ value: 'Precio ($)', position: 'insideBottom', offset: -5, fill: COLORS.gray500 }}
             />
             <YAxis 
-              label={{ value: 'Demanda (unidades)', angle: -90, position: 'insideLeft' }}
+              stroke={COLORS.gray500}
+              label={{ value: 'Demanda', angle: -90, position: 'insideLeft', fill: COLORS.gray500 }}
             />
-            <Tooltip />
-            <Legend />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ color: COLORS.cloudWhite }} />
             <Area 
               type="monotone" 
               dataKey="demandaLineal" 
-              fill="#c17f59" 
-              stroke="#a5673f" 
+              fill={COLORS.lineal} 
+              stroke={COLORS.cyanNeon} 
               fillOpacity={0.3}
               name="Demanda estimada"
             />
             <Line
               type="monotone"
               dataKey="demandaLineal"
-              stroke="#4a3729"
+              stroke={COLORS.cyanNeon}
               strokeWidth={2}
-              dot={{ r: 4 }}
-              name="Punto actual"
-              activeDot={{ r: 8 }}
+              dot={{ fill: COLORS.electricBlue, r: 4 }}
+              name="Curva de demanda"
             />
           </ComposedChart>
         </ResponsiveContainer>
-        <div className="flex justify-center gap-6 mt-2 text-xs text-gray-500">
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 bg-brown-500 rounded"></span> Punto actual
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 bg-brown-300 rounded"></span> Proyección
-          </span>
-        </div>
       </div>
 
-      {/* Gráfico 3: Impacto en Ingresos por Modelo */}
-      <div className="bg-white p-4 rounded-lg border">
-        <h4 className="text-sm font-semibold text-gray-700 mb-4">
+      {/* Gráfico 3: Impacto en Ingresos */}
+      <div className="bg-gray-800/30 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
+        <h4 className="text-sm font-semibold text-cloud-white mb-4">
           Impacto en Ingresos por Modelo
         </h4>
         <ResponsiveContainer width="100%" height={200}>
@@ -141,16 +159,16 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
               { name: 'RF', ingresos: rf.ingreso_estimado },
             ]}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray700} />
+            <XAxis dataKey="name" stroke={COLORS.gray500} />
+            <YAxis stroke={COLORS.gray500} />
+            <Tooltip content={<CustomTooltip />} />
             <Line
               type="monotone"
               dataKey="ingresos"
-              stroke="#c17f59"
+              stroke={COLORS.cyanNeon}
               strokeWidth={3}
-              dot={{ r: 6, fill: '#4a3729' }}
+              dot={{ fill: COLORS.electricBlue, r: 6 }}
             />
           </LineChart>
         </ResponsiveContainer>

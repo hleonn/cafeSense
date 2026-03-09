@@ -14,10 +14,11 @@ export const Button: React.FC<ButtonProps> = ({
   ...props 
 }) => {
   const baseClasses = 'px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer'
+  
   const variantClasses = {
-    primary: 'bg-brown-600 text-white hover:bg-brown-700 disabled:bg-brown-300',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-100',
-    danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300'
+    primary: 'bg-electric-blue text-white hover:bg-cyan-neon disabled:bg-gray-600',
+    secondary: 'bg-gray-700 text-cloud-white hover:bg-gray-600 disabled:bg-gray-800 border border-gray-600',
+    danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-900'
   }
 
   return (

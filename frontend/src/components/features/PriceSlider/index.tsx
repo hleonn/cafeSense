@@ -18,13 +18,15 @@ export const PriceSlider = ({ precioActual, onChange }: Props) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-600">Precio actual:</span>
-        <span className="font-bold">${precioActual.toFixed(2)}</span>
+        <span className="text-sm text-gray-400">Precio actual:</span>
+        <span className="font-bold text-cloud-white">${precioActual.toFixed(2)}</span>
       </div>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Cambio: {porcentaje > 0 ? '+' : ''}{porcentaje}%
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Cambio: <span className={porcentaje > 0 ? 'text-cyan-neon' : 'text-red-400'}>
+            {porcentaje > 0 ? '+' : ''}{porcentaje}%
+          </span>
         </label>
         <input
           type="range"
@@ -32,7 +34,14 @@ export const PriceSlider = ({ precioActual, onChange }: Props) => {
           max="30"
           value={porcentaje}
           onChange={handleChange}
-          className="w-full h-2 bg-brown-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-4
+            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:bg-electric-blue
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:hover:bg-cyan-neon
+            [&::-webkit-slider-thumb]:transition-colors"
         />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
           <span>-30%</span>
@@ -41,10 +50,10 @@ export const PriceSlider = ({ precioActual, onChange }: Props) => {
         </div>
       </div>
       
-      <div className="bg-blue-50 p-3 rounded-lg">
+      <div className="bg-gray-800/50 backdrop-blur-sm p-3 rounded-lg border border-gray-700">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-blue-700">Nuevo precio:</span>
-          <span className="text-lg font-bold text-blue-800">
+          <span className="text-sm text-gray-400">Nuevo precio:</span>
+          <span className="text-lg font-bold text-electric-blue">
             ${nuevoPrecio.toFixed(2)}
           </span>
         </div>

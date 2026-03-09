@@ -15,12 +15,14 @@
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.35.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.2",
+    "react-hot-toast": "^2.6.0",
     "recharts": "^3.7.0"
   },
   "devDependencies": {
