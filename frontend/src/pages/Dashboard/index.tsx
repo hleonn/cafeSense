@@ -7,6 +7,7 @@ import { PriceSlider } from '../../components/features/PriceSlider'
 import { ComparisonChart } from '../../components/features/SimulationResults/ComparisonChart'
 import { GuardarEscenarioModal } from '../../components/features/Scenarios/GuardarEscenarioModal'
 import { ListaEscenarios } from '../../components/features/Scenarios/ListaEscenarios'
+import { PDFGenerator } from '../../components/features/PDFGenerator'
 import { Card } from '../../components/common/Card'
 import { Button } from '../../components/common/Button'
 import { BookmarkIcon } from '@heroicons/react/24/outline'
@@ -105,7 +106,7 @@ export const Dashboard = () => {
 
           {resultadoLineal && resultadoRF ? (
             <div className="space-y-6">
-              {/* Header con botón guardar */}
+              {/* Header con botones */}
               <div className="flex justify-between items-center">
                 <div className="grid grid-cols-3 gap-4 flex-1">
                   <div className="bg-blue-50 p-4 rounded-lg text-center">
@@ -136,14 +137,20 @@ export const Dashboard = () => {
                   </div>
                 </div>
                 
-                <Button
-                  onClick={() => setModalAbierto(true)}
-                  className="ml-4 flex items-center gap-2"
-                  variant="secondary"
-                >
-                  <BookmarkIcon className="h-4 w-4" />
-                  Guardar
-                </Button>
+                <div className="flex gap-2 ml-4">
+                  <PDFGenerator
+                    resultados={{ lineal: resultadoLineal, rf: resultadoRF }}
+                    tipo="simulacion"
+                  />
+                  <Button
+                    onClick={() => setModalAbierto(true)}
+                    variant="secondary"
+                    className="flex items-center gap-2"
+                  >
+                    <BookmarkIcon className="h-4 w-4" />
+                    Guardar
+                  </Button>
+                </div>
               </div>
 
               {/* Gráficos */}

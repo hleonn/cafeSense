@@ -4,6 +4,7 @@ import { Card } from '../../common/Card'
 import { CalendarIcon, ArrowUpIcon, ArrowDownIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Dialog } from '@headlessui/react'
 import { Button } from '../../common/Button'
+import { PDFGenerator } from '../PDFGenerator'  // ✅ Import agregado
 
 interface Props {
   escenarios: EscenarioGuardado[]
@@ -15,11 +16,17 @@ export const ListaEscenarios: React.FC<Props> = ({ escenarios, onSelect, onElimi
   const [eliminandoId, setEliminandoId] = useState<number | null>(null)
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
   const [escenarioAEliminar, setEscenarioAEliminar] = useState<EscenarioGuardado | null>(null)
+  const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioGuardado | null>(null)
 
   const handleEliminarClick = (esc: EscenarioGuardado, e: React.MouseEvent) => {
-    e.stopPropagation() // Evita que se active onSelect
+    e.stopPropagation()
     setEscenarioAEliminar(esc)
     setMostrarConfirmacion(true)
+  }
+
+  const handleSelectEscenario = (esc: EscenarioGuardado) => {
+    setEscenarioSeleccionado(esc)
+    onSelect?.(esc)
   }
 
   const confirmarEliminar = async () => {
@@ -63,10 +70,9 @@ export const ListaEscenarios: React.FC<Props> = ({ escenarios, onSelect, onElimi
           {escenarios.map((esc) => (
             <div
               key={esc.id}
-              onClick={() => onSelect?.(esc)}
+              onClick={() => handleSelectEscenario(esc)}
               className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border border-gray-200 relative group"
             >
-              {/* Botón de eliminar (visible al hacer hover) */}
               <button
                 onClick={(e) => handleEliminarClick(esc, e)}
                 disabled={eliminandoId === esc.id}
@@ -115,9 +121,19 @@ export const ListaEscenarios: React.FC<Props> = ({ escenarios, onSelect, onElimi
             </div>
           ))}
         </div>
+
+        {/* Botón PDF para el escenario seleccionado */}
+        {escenarioSeleccionado && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <PDFGenerator
+              escenario={escenarioSeleccionado}
+              tipo="escenario"
+            />
+          </div>
+        )}
       </Card>
 
-      {/* Modal de confirmación */}
+      {/* Modal de confirmación para eliminar */}
       <Dialog open={mostrarConfirmacion} onClose={() => setMostrarConfirmacion(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         
