@@ -1,53 +1,94 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   HomeIcon,
-  UsersIcon,
+  ChartBarIcon,
+  UserGroupIcon,
   HeartIcon,
   DocumentTextIcon,
-  PresentationChartLineIcon,
   Cog6ToothIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  SparklesIcon
+  SparklesIcon,
+  UsersIcon,
+  EyeIcon,
+  BookmarkIcon,
+  ShareIcon,
+  PresentationChartLineIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline'
 
 interface MenuItem {
   name: string
   icon: React.ElementType
-  subItems?: string[]
+  path?: string
+  subItems?: { name: string; path: string; icon?: React.ElementType }[]
 }
 
 const menuItems: MenuItem[] = [
   {
     name: 'Dashboard',
     icon: HomeIcon,
-    subItems: ['Analytics', 'Followers', 'Verified Followers', 'Profile Visits', 'Impressions']
+    path: '/dashboard',
+    subItems: [
+      { name: 'Analytics', path: '/analytics', icon: ChartBarIcon },
+      { name: 'Followers', path: '/audience', icon: UsersIcon },
+      { name: 'Verified Followers', path: '/audience?tab=verified', icon: EyeIcon },
+      { name: 'Profile Visits', path: '/audience?tab=visits', icon: EyeIcon },
+      { name: 'Impressions', path: '/audience?tab=impressions', icon: ChartBarIcon }
+    ]
   },
   {
     name: 'Audience',
-    icon: UsersIcon,
-    subItems: ['Followers', 'Verified Followers', 'Profile Visits', 'Impressions']
+    icon: UserGroupIcon,
+    path: '/audience',
+    subItems: [
+      { name: 'Followers', path: '/audience', icon: UsersIcon },
+      { name: 'Verified Followers', path: '/audience?tab=verified', icon: EyeIcon },
+      { name: 'Profile Visits', path: '/audience?tab=visits', icon: EyeIcon },
+      { name: 'Impressions', path: '/audience?tab=impressions', icon: ChartBarIcon }
+    ]
   },
   {
     name: 'Interaction',
     icon: HeartIcon,
-    subItems: ['Likes', 'Reposts', 'Bookmarks', 'Shares']
+    path: '/interaction',
+    subItems: [
+      { name: 'Likes', path: '/interaction?tab=likes', icon: HeartIcon },
+      { name: 'Reposts', path: '/interaction?tab=reposts', icon: ShareIcon },
+      { name: 'Bookmarks', path: '/interaction?tab=bookmarks', icon: BookmarkIcon },
+      { name: 'Shares', path: '/interaction?tab=shares', icon: ShareIcon }
+    ]
   },
   {
     name: 'Content Activity',
     icon: DocumentTextIcon,
-    subItems: ['Posts', 'Replies', 'Engagement rate']
+    path: '/content-activity',
+    subItems: [
+      { name: 'Posts', path: '/content-activity?tab=posts', icon: DocumentTextIcon },
+      { name: 'Replies', path: '/content-activity?tab=replies', icon: DocumentTextIcon },
+      { name: 'Engagement rate', path: '/content-activity?tab=engagement', icon: ChartBarIcon }
+    ]
   },
   {
     name: 'Performance',
     icon: PresentationChartLineIcon,
-    subItems: ['Engagement', 'Engagement rate']
+    path: '/performance',
+    subItems: [
+      { name: 'Engagement', path: '/performance?tab=engagement', icon: ChartBarIcon },
+      { name: 'Engagement rate', path: '/performance?tab=rate', icon: ChartBarIcon }
+    ]
   },
   {
     name: 'Admin',
     icon: Cog6ToothIcon,
-    subItems: ['Team Management', 'Integration', 'Setting']
+    path: '/admin',
+    subItems: [
+      { name: 'Team Management', path: '/admin?tab=team', icon: UsersIcon },
+      { name: 'Integration', path: '/admin?tab=integration', icon: LinkIcon },
+      { name: 'Setting', path: '/admin?tab=settings', icon: Cog6ToothIcon }
+    ]
   }
 ]
 
@@ -57,8 +98,17 @@ interface Props {
 }
 
 export const Sidebar: React.FC<Props> = ({ isOpen, onToggle }) => {
-  const [selectedMenu, setSelectedMenu] = useState('Dashboard')
+  const navigate = useNavigate()
+  const location = useLocation()
   const [expandedMenu, setExpandedMenu] = useState<string | null>('Dashboard')
+
+  const handleNavigation = (path: string) => {
+    navigate(path)
+  }
+
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path.split('?')[0])
+  }
 
   return (
     <motion.aside
@@ -78,7 +128,10 @@ export const Sidebar: React.FC<Props> = ({ isOpen, onToggle }) => {
         )}
       </button>
 
-      <div className="p-4 border-b border-gray-800">
+      <div 
+        className="p-4 border-b border-gray-800 cursor-pointer"
+        onClick={() => handleNavigation('/dashboard')}
+      >
         <motion.div
           animate={{ opacity: isOpen ? 1 : 0 }}
           className={`${isOpen ? 'block' : 'hidden'}`}
@@ -98,11 +151,13 @@ export const Sidebar: React.FC<Props> = ({ isOpen, onToggle }) => {
           <div key={item.name}>
             <button
               onClick={() => {
-                setSelectedMenu(item.name)
                 setExpandedMenu(expandedMenu === item.name ? null : item.name)
+                if (item.path && !item.subItems) {
+                  handleNavigation(item.path)
+                }
               }}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                selectedMenu === item.name
+                isActive(item.path || '')
                   ? 'bg-electric-blue text-white'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-cloud-white'
               }`}
@@ -132,10 +187,16 @@ export const Sidebar: React.FC<Props> = ({ isOpen, onToggle }) => {
                 >
                   {item.subItems.map((subItem) => (
                     <button
-                      key={subItem}
-                      className="w-full text-left text-xs text-gray-500 hover:text-cyan-neon py-1.5 px-3 rounded-lg transition-colors"
+                      key={subItem.name}
+                      onClick={() => handleNavigation(subItem.path)}
+                      className={`w-full flex items-center gap-2 text-left text-xs py-1.5 px-3 rounded-lg transition-colors ${
+                        isActive(subItem.path)
+                          ? 'text-cyan-neon bg-gray-800'
+                          : 'text-gray-500 hover:text-cyan-neon hover:bg-gray-800/50'
+                      }`}
                     >
-                      {subItem}
+                      {subItem.icon && <subItem.icon className="h-3 w-3" />}
+                      {subItem.name}
                     </button>
                   ))}
                 </motion.div>
