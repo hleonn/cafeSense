@@ -9,6 +9,7 @@ import numpy as np
 from app.database.models import Cafe, Venta, Escenario, Base
 from app.database.session import engine, SessionLocal
 from ml import predict as ml_predict
+from .routers import auth
 
 app = FastAPI(title="CafeSense API")
 
@@ -420,3 +421,5 @@ async def eliminar_escenario(escenario_id: int):
         return {"message": "Escenario eliminado correctamente"}
     finally:
         db.close()
+# ============ ENDPOINTS DE AUTENTICACIÓN ============
+app.include_router(auth.router)
