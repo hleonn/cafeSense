@@ -1,0 +1,41 @@
+/* Mejoras responsivas */
+@media (max-width: 640px) {
+  .sidebar {
+    position: fixed;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .btn-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  table {
+    font-size: 0.875rem;
+  }
+  
+  td, th {
+    padding: 0.5rem !important;
+  }
+}
