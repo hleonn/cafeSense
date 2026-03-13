@@ -14,12 +14,6 @@ from .routers import auth
 
 app = FastAPI(title="CafeSense API")
 
-@app.on_event("startup")
-async def startup():
-    """Crear tablas al iniciar la aplicación"""
-    Base.metadata.create_all(bind=engine)
-    print("✅ Tablas creadas/verificadas en la base de datos")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "https://cafesense.vercel.app"],  # Añade tu frontend local
@@ -27,6 +21,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.on_event("startup")
+async def startup():
+    """Crear tablas al iniciar la aplicación"""
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tablas creadas/verificadas en la base de datos")
+
+
 
 @app.get("/")
 async def root():
