@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import axiosInstance from '../config/axios'
 
 export interface SimulacionRequest {
   cafe_id: number
@@ -34,8 +34,8 @@ export const useSimulacion = () => {
     
     try {
       const [lineal, rf] = await Promise.all([
-        axios.post('/api/simular', data),
-        axios.post('/api/simular-rf', data)
+        axiosInstance.post('/simular', data),
+        axiosInstance.post('/simular-rf', data)
       ])
       
       setResultadoLineal(lineal.data)

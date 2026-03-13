@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import axiosInstance from '../config/axios'
 
 export interface Cafe {
     id: number
@@ -21,7 +21,7 @@ export const useCafes = () => {
     useEffect(() => {
         const fetchCafes = async () => {
             try {
-                const response = await axios.get('/api/cafes')
+                const response = await axiosInstance.get('/cafes')
                 setCafes(response.data)
                 if (response.data.length > 0) {
                     setSelectedCafe(response.data[0])
