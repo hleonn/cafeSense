@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react'
-import axios from 'axios'
+import axiosInstance from '../config/axios'
 
 interface User {
   id: number
@@ -32,36 +32,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
 
-  // Configurar axios con el token
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      console.log('Token configurado:', token)
-    } else {
-      delete axios.defaults.headers.common['Authorization']
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
     }
   }, [token])
 
-  // Cargar usuario al iniciar
   useEffect(() => {
     const loadUser = async () => {
       if (!token) {
-        console.log('No hay token, saltando carga de usuario')
         setLoading(false)
         return
       }
 
       try {
-        console.log('Cargando usuario con token:', token)
-        const response = await axios.get('/auth/me')
-        console.log('Usuario cargado:', response.data)
+        const response = await axiosInstance.get('/auth/me')
         setUser(response.data)
       } catch (error) {
         console.error('Error loading user:', error)
-        // Si hay error, eliminar el token inválido
         localStorage.removeItem('token')
         setToken(null)
-        delete axios.defaults.headers.common['Authorization']
+        delete axiosInstance.defaults.headers.common['Authorization']
       } finally {
         setLoading(false)
       }
@@ -71,70 +62,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [token])
 
   const login = async (email: string, password: string) => {
-    try {
-      console.log('Intentando login con:', email)
-      const formData = new FormData()
-      formData.append('username', email)
-      formData.append('password', password)
+    const formData = new FormData()
+    formData.append('username', email)
+    formData.append('password', password)
 
-      const response = await axios.post('/auth/login', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+    const response = await axiosInstance.post('/auth/login', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    
+    const { access_token } = response.data
+    localStorage.setItem('token', access_token)
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+    setToken(access_token)
 
-      console.log('Login response:', response.data)
-      const { access_token } = response.data
-
-      // Guardar token
-      localStorage.setItem('token', access_token)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
-      setToken(access_token)
-
-      // Pequeña pausa para asegurar que el token se guardó
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Cargar usuario
-      const userResponse = await axios.get('/auth/me')
-      console.log('Usuario cargado:', userResponse.data)
-      setUser(userResponse.data)
-
-    } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message)
-      // Limpiar cualquier token inválido
-      localStorage.removeItem('token')
-      delete axios.defaults.headers.common['Authorization']
-      setToken(null)
-      throw error
-    }
+    const userResponse = await axiosInstance.get('/auth/me')
+    setUser(userResponse.data)
   }
 
-
   const register = async (email: string, username: string, password: string, full_name?: string) => {
-    try {
-      console.log('Intentando registro:', { email, username })
-      const response = await axios.post('/auth/register', {
-        email,
-        username,
-        password,
-        full_name
-      })
-      console.log('Registro exitoso:', response.data)
-      
-      // Login automático
-      await login(email, password)
-    } catch (error) {
-      console.error('Register error:', error)
-      throw error
-    }
+    await axiosInstance.post('/auth/register', {
+      email,
+      username,
+      password,
+      full_name
+    })
+    await login(email, password)
   }
 
   const logout = () => {
     localStorage.removeItem('token')
-    delete axios.defaults.headers.common['Authorization']
+    delete axiosInstance.defaults.headers.common['Authorization']
     setToken(null)
     setUser(null)
-    console.log('Sesión cerrada')
   }
 
   return (

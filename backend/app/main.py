@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text, func
 from sqlalchemy.orm import sessionmaker
 from typing import Optional, List
@@ -18,6 +19,14 @@ async def startup():
     """Crear tablas al iniciar la aplicación"""
     Base.metadata.create_all(bind=engine)
     print("✅ Tablas creadas/verificadas en la base de datos")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "https://cafesense.vercel.app"],  # Añade tu frontend local
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
