@@ -1,14 +1,20 @@
 #!/bin/bash
-# Script de inicio para Railway
-
-# Mostrar variables de entorno para debugging
-echo "Iniciando backend en Railway..."
+echo "=== INICIANDO BACKEND EN RENDER (MODO DIAGNÓSTICO) ==="
 echo "PORT: $PORT"
 echo "DATABASE_URL: $DATABASE_URL"
-
-# Usar el puerto asignado por Railway o 8000 por defecto
-PORT=${PORT:-8000}
-echo "Usando puerto: $PORT"
-
-# Iniciar la aplicación
+echo "---"
+echo "1. Probando resolución de DNS..."
+nslookup db.zgrgihjildvdmuqwlyot.supabase.co
+echo "---"
+echo "2. Probando conectividad al puerto 5432 con nc (si está instalado)..."
+nc -zv db.zgrgihjildvdmuqwlyot.supabase.co 5432 || echo "nc no instalado o conexión fallida"
+echo "---"
+echo "3. Probando conectividad al puerto 6543 (pooler) con nc..."
+nc -zv aws-0-us-west-1.pooler.supabase.com 6543 || echo "nc no instalado o conexión fallida"
+echo "---"
+echo "4. (Alternativa) Probando con /dev/tcp (bash built-in)..."
+timeout 5 bash -c "echo > /dev/tcp/db.zgrgihjildvdmuqwlyot.supabase.co/5432" && echo "Conexión a 5432 exitosa" || echo "Conexión a 5432 fallida"
+timeout 5 bash -c "echo > /dev/tcp/aws-0-us-west-1.pooler.supabase.com/6543" && echo "Conexión a 6543 (pooler) exitosa" || echo "Conexión a 6543 (pooler) fallida"
+echo "---"
+echo "Iniciando uvicorn..."
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
