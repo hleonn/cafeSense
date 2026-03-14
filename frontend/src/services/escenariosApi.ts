@@ -1,5 +1,5 @@
 import axiosInstance from '../config/axios'
-import { Escenario, EscenarioGuardado } from '../types/escenario'
+// import { Escenario, EscenarioGuardado } from '../types/escenario'
 
 const API_URL = '/escenarios'
 

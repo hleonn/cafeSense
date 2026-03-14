@@ -15,17 +15,17 @@ interface Props {
 }
 
 // Colores del tema High-Contrast-Tech
-const COLORS = {
-  electricBlue: '#0984E3',
-  cyanNeon: '#00CEC9',
-  nightBlack: '#1E272E',
-  cloudWhite: '#F5F6FA',
-  gray700: '#334155',
-  gray600: '#475569',
-  gray500: '#64748B',
-  greenSuccess: '#10B981',
-  redError: '#EF4444'
-}
+// const COLORS = {
+//   electricBlue: '#0984E3',
+//   cyanNeon: '#00CEC9',
+//   nightBlack: '#1E272E',
+//   cloudWhite: '#F5F6FA',
+//   gray700: '#334155',
+//   gray600: '#475569',
+//   gray500: '#64748B',
+//   greenSuccess: '#10B981',
+//   redError: '#EF4444'
+// }
 
 export const PDFGenerator: React.FC<Props> = ({ 
   resultados, 

@@ -12,7 +12,7 @@ export const CafeSelector = ({ cafes, selectedCafe, onSelect }: Props) => {
     <div className="space-y-4">
       <Select
         items={cafes}
-        selected={selectedCafe}
+        selected={selectedCafe || undefined}
         onChange={onSelect}
         getLabel={(cafe) => `${cafe.nombre} (${cafe.origen})`}
         placeholder="Seleccionar café..."

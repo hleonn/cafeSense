@@ -96,8 +96,8 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={barData}>
             <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray700} />
-            <XAxis dataKey="name" stroke={COLORS.gray500} />
-            <YAxis stroke={COLORS.gray500} />
+            <XAxis dataKey="name" stroke={COLORS.gray700} />
+            <YAxis stroke={COLORS.gray700} />
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ color: COLORS.cloudWhite }} />
             <Bar dataKey="Actual" fill={COLORS.actual} />
@@ -117,12 +117,12 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
             <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray700} />
             <XAxis 
               dataKey="precio" 
-              stroke={COLORS.gray500}
-              label={{ value: 'Precio ($)', position: 'insideBottom', offset: -5, fill: COLORS.gray500 }}
+              stroke={COLORS.gray700}
+              label={{ value: 'Precio ($)', position: 'insideBottom', offset: -5, fill: COLORS.gray700 }}
             />
             <YAxis 
-              stroke={COLORS.gray500}
-              label={{ value: 'Demanda', angle: -90, position: 'insideLeft', fill: COLORS.gray500 }}
+              stroke={COLORS.gray700}
+              label={{ value: 'Demanda', angle: -90, position: 'insideLeft', fill: COLORS.gray700 }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ color: COLORS.cloudWhite }} />
@@ -160,8 +160,8 @@ export const ComparisonChart: React.FC<Props> = ({ lineal, rf }) => {
             ]}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray700} />
-            <XAxis dataKey="name" stroke={COLORS.gray500} />
-            <YAxis stroke={COLORS.gray500} />
+            <XAxis dataKey="name" stroke={COLORS.gray700} />
+            <YAxis stroke={COLORS.gray700} />
             <Tooltip content={<CustomTooltip />} />
             <Line
               type="monotone"

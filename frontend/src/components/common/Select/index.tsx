@@ -1,10 +1,10 @@
-import React, { Fragment } from 'react'
+import { Fragment } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid'
 
 interface SelectProps<T> {
   items: T[]
-  selected: T | null
+  selected: T | undefined
   onChange: (item: T) => void
   getLabel: (item: T) => string
   placeholder?: string
