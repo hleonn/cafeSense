@@ -17,7 +17,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.database.models import Cafe, Venta, Escenario, Base
 
 # Configuración de conexión
-DATABASE_URL = "postgresql://tato@host.docker.internal:5432/cafesense_dev"
+# DATABASE_URL = "postgresql://tato@host.docker.internal:5432/cafesense_dev"
+DATABASE_URL = "postgresql://postgres.zgrgihjildvdmuqwlyot:CafeSense2025@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
