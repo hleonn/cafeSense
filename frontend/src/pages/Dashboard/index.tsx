@@ -17,7 +17,7 @@ import { BookmarkIcon, LightBulbIcon } from '@heroicons/react/24/outline'
 
 export const Dashboard = () => {
     const { cafes, selectedCafe, setSelectedCafe, loading: loadingCafes } = useCafes()
-    const { resultadoLineal, resultadoRF, loading, error, simular } = useSimulacion()
+    const { resultadoLineal, resultadoRF, loading, simular } = useSimulacion()
     const { escenarios, guardarEscenario, eliminarEscenario } = useEscenarios()
     const [porcentaje, setPorcentaje] = useState(10)
     const [modalAbierto, setModalAbierto] = useState(false)
